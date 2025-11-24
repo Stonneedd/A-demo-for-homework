@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API对话助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #1a2a6c, #2a3a9c);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1a2a6c;
+        }
+        
+        .content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: #f5f7fa;
+            padding: 20px;
+            border-right: 1px solid #e1e5eb;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .api-section {
+            margin-bottom: 25px;
+        }
+        
+        .api-section h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #1a2a6c;
+        }
+        
+        .api-key-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+        
+        .model-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            background: white;
+        }
+        
+        .btn {
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background: #2a3a9c;
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-clear {
+            background: #b21f1f;
+            margin-top: 10px;
+        }
+        
+        .btn-clear:hover {
+            background: #c22f2f;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            border: 1px solid #e1e5eb;
+            border-radius: 12px;
+            background: white;
+            margin-bottom: 15px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 15px;
+            border-radius: 12px;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        
+        .user-message {
+            background: #e3f2fd;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .assistant-message {
+            background: #f5f5f5;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-sender {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: none;
+            height: 60px;
+        }
+        
+        .send-btn {
+            background: #1a2a6c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            width: 60px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .send-btn:hover {
+            background: #2a3a9c;
+        }
+        
+        .send-btn:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            max-width: 80%;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            background: #999;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: 0s; }
+        .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e1e5eb;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DS</div>
+            <h1>API 对话助手</h1>
+            <p>与AI进行智能对话 - 基于API</p>
+        </div>
+        
+        <div class="content">
+            <div class="sidebar">
+                <div class="api-section">
+                    <h3>API 配置</h3>
+                    <input type="password" id="api-key" class="api-key-input" placeholder="请输入您的DeepSeek API密钥">
+                    
+                    <select id="model-select" class="model-select">
+                        <option value="deepseek-chat">DeepSeek Chat</option>
+                        <option value="deepseek-reasoner">DeepSeek Reasoner</option>
+                        <option value="ernie-x1.1-preview">ernie-x1.1-preview</option>  
+                    </select>
+                    <select id="model-select2" class="model-select">
+                        <option value="https://api.deepseek.com/chat/completions">DeepSeek Chat</option>
+                        <option value="https://api.deepseek.com/chat/completions">DeepSeek Reasoner</option>
+                        <option value="https://qianfan.baidubce.com/v2/chat/completions">ernie-x1.1-preview</option>  
+                    </select>
+                    <button id="save-btn" class="btn">保存设置</button>
+                </div>
+                
+                <div class="api-section">
+                    <h3>对话选项</h3>
+                    <button id="clear-btn" class="btn btn-clear">清空对话历史</button>
+                </div>
+                
+                <div class="api-section">
+                    <h3>使用说明</h3>
+                    <p style="font-size: 0.85rem; line-height: 1.4; margin-top: 10px;">
+                        1. 输入您的API密钥<br>
+                        2. 点击"保存设置"<br>
+                        3. 在下方输入消息开始对话
+                    </p>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="message assistant-message">
+                        <div class="message-sender">API助手</div>
+                        您好！我是AI助手。请先在左侧输入您的API密钥，然后我们就可以开始对话了。
+                    </div>
+                </div>
+                
+                <div class="typing-indicator" id="typing-indicator">
+                    <div class="message-sender">API助手</div>
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+                
+                <div class="input-area">
+                    <textarea class="message-input" id="message-input" placeholder="输入您的问题或消息..."></textarea>
+                    <button class="send-btn" id="send-btn">发送</button>
+                </div>
+                
+                <div class="status" id="status">准备就绪</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取DOM元素
+            const apiKeyInput = document.getElementById('api-key');
+            const modelSelect = document.getElementById('model-select');
+            const modelSelect2 = document.getElementById('model-select2');
+            const saveBtn = document.getElementById('save-btn');
+            const clearBtn = document.getElementById('clear-btn');
+            const chatMessages = document.getElementById('chat-messages');
+            const messageInput = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+            const statusDiv = document.getElementById('status');
+            const typingIndicator = document.getElementById('typing-indicator');
+            
+            // 从本地存储加载API密钥和模型设置
+            const savedApiKey = localStorage.getItem('deepseek-api-key');
+            const savedModel = localStorage.getItem('deepseek-model');
+            const savedUrl = localStorage.getItem('deepseek-url');
+            
+            if (savedApiKey) {
+                apiKeyInput.value = savedApiKey;
+            }
+            
+            if (savedModel) {
+                modelSelect.value = savedModel;
+            }
+             if (savedUrl) {
+                modelSelect2.value = savedUrl;
+            }           
+            // 保存设置
+            saveBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                const model = modelSelect.value;
+                const url = modelSelect2.value;
+                
+                if (!apiKey) {
+                    alert('请输入API密钥');
+                    return;
+                }
+                
+                localStorage.setItem('deepseek-api-key', apiKey);
+                localStorage.setItem('deepseek-model', model);
+                localStorage.setItem('deepseek-url', url);
+                
+                statusDiv.textContent = '设置已保存';
+                setTimeout(() => {
+                    statusDiv.textContent = '准备就绪';
+                }, 2000);
+            });
+            
+            // 清空对话历史
+            clearBtn.addEventListener('click', function() {
+                chatMessages.innerHTML = '';
+                addMessage('DeepSeek助手', '对话历史已清空。', 'assistant');
+            });
+            
+            // 发送消息
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                const apiKey = localStorage.getItem('deepseek-api-key');
+                const url = localStorage.getItem('deepseek-url');
+                const model = localStorage.getItem('deepseek-model') || 'deepseek-chat';
+                
+                if (!message) {
+                    alert('请输入消息');
+                    return;
+                }
+                
+                if (!apiKey) {
+                    alert('请先输入并保存API密钥');
+                    return;
+                }
+                
+                // 添加用户消息到聊天区域
+                addMessage('您', message, 'user');
+                messageInput.value = '';
+                
+                // 显示"正在输入"指示器
+                typingIndicator.style.display = 'block';
+                sendBtn.disabled = true;
+                statusDiv.textContent = '正在与通信...';
+                
+                // 滚动到底部
+                scrollToBottom();
+                
+                // 调用DeepSeek API
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: model,
+                        messages: [
+                            { role: 'user', content: message }
+                        ],
+                        stream: false
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`API请求失败: ${response.status} ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // 隐藏"正在输入"指示器
+                    typingIndicator.style.display = 'none';
+                    sendBtn.disabled = false;
+                    
+                    if (data.choices && data.choices.length > 0) {
+                        const reply = data.choices[0].message.content;
+                        addMessage('API助手', reply, 'assistant');
+                        statusDiv.textContent = '回复完成';
+                    } else {
+                        throw new Error('API返回格式异常');
+                    }
+                })
+                .catch(error => {
+                    // 隐藏"正在输入"指示器
+                    typingIndicator.style.display = 'none';
+                    sendBtn.disabled = false;
+                    
+                    console.error('API调用错误:', error);
+                    addMessage('系统', `错误: ${error.message}`, 'assistant');
+                    statusDiv.textContent = '请求出错';
+                });
+            }
+            
+            // 发送按钮点击事件
+            sendBtn.addEventListener('click', sendMessage);
+            
+            // 输入框回车事件
+            messageInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+            
+            // 添加消息到聊天区域
+            function addMessage(sender, content, type) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}-message`;
+                
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message-sender';
+                senderDiv.textContent = sender;
+                
+                const contentDiv = document.createElement('div');
+                contentDiv.textContent = content;
+                
+                messageDiv.appendChild(senderDiv);
+                messageDiv.appendChild(contentDiv);
+                
+                chatMessages.appendChild(messageDiv);
+                
+                // 滚动到底部
+                scrollToBottom();
+            }
+            
+            // 滚动到底部
+            function scrollToBottom() {
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            // 自动调整输入框高度
+            messageInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        });
+    </script>
+</body>
+</html>
